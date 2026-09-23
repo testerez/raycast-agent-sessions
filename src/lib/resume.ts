@@ -3,11 +3,14 @@ import { runAppleScript } from "@raycast/utils";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { claudeDesktopSessionId } from "./desktop";
 import { SessionHit } from "./types";
 
 /**
  * Resuming strategies (verified against the installed apps):
- *  - Claude Desktop handles `claude://resume?session=<uuid>` (imports a CLI session if needed).
+ *  - Claude Desktop: `claude://code/continue?session=local_<uuid>` navigates to an existing desktop
+ *    session; `claude://resume?session=<uuid>` always *imports* the CLI transcript as a new desktop
+ *    session (a duplicate when one already exists), so it is only the fallback.
  *  - Codex (ChatGPT.app, bundle com.openai.codex) handles `codex://threads/<uuid>`.
  *  - Terminal: `claude --resume <id>` / `codex resume <id>` run inside the session's cwd.
  * Terminal launchers follow the patterns used by ClaudeCast, claude-code-launcher and
@@ -52,10 +55,20 @@ export function fullTerminalCommand(hit: SessionHit): string {
   return `cd ${shellQuote(workingDirectory(hit))} && ${resumeCommand(hit)}`;
 }
 
+/** Deep link that imports/opens the session without knowing Claude Desktop's own session id. */
 export function appDeepLink(hit: SessionHit): string {
   return hit.agent === "claude"
     ? `claude://resume?session=${encodeURIComponent(hit.sessionId)}`
     : `codex://threads/${encodeURIComponent(hit.sessionId)}`;
+}
+
+/** Deep link to the existing desktop session when there is one, otherwise `appDeepLink`. */
+export async function resolvedAppDeepLink(hit: SessionHit): Promise<string> {
+  if (hit.agent === "claude") {
+    const desktopId = await claudeDesktopSessionId(hit.sessionId);
+    if (desktopId) return `claude://code/continue?session=${encodeURIComponent(desktopId)}`;
+  }
+  return appDeepLink(hit);
 }
 
 export function appName(hit: SessionHit): string {
@@ -75,7 +88,7 @@ export function preferredTarget(hit: SessionHit): "app" | "terminal" {
 }
 
 export async function openInApp(hit: SessionHit): Promise<void> {
-  await open(appDeepLink(hit));
+  await open(await resolvedAppDeepLink(hit));
 }
 
 export async function openInTerminal(hit: SessionHit): Promise<void> {
