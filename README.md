@@ -6,7 +6,7 @@ Everything is local: transcripts are read from `~/.claude` and `~/.codex`, the i
 
 ## What it does
 
-- **One search box over every historical session**, not only recent ones: PR numbers (`832`, `#832`, `PR 832`, a GitHub PR URL), Linear keys (`ZAP-1793`), branch names, file names, symbols, or any phrase from the conversation.
+- **One search box over every historical session**, not only recent ones: PR numbers (`832`, `#832`, `PR 832`, a GitHub PR URL), Linear keys (`ENG-1793`), branch names, file names, symbols, or any phrase from the conversation.
 - **PR-aware ranking.** A session that actually worked on PR #832 (Claude `pr-link` record, branch `pr-832-…`, the PR URL in your prompt) ranks far above a session where "832" merely appears in some output.
 - **Metadata per session:** agent, title, project/repo, branch, created and last-activity dates, PR and issue tags, message count, the prompt that started it and the last one.
 - **Resume in one keystroke.** Enter opens the session where it came from: Claude Desktop (`claude://resume?session=<id>`) or the Codex app (`codex://threads/<id>`) for desktop-created sessions, otherwise `claude --resume <id>` / `codex resume <id>` in your terminal, in the session's working directory. Both options are always available in the action panel, along with copy-command, copy-id, open-PR, show-in-Finder and open-in-editor actions.

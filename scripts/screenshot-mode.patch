@@ -1,0 +1,50 @@
+diff --git a/src/lib/desktop.ts b/src/lib/desktop.ts
+index e28610e..cc00c07 100644
+--- a/src/lib/desktop.ts
++++ b/src/lib/desktop.ts
+@@ -1,5 +1,5 @@
+ import { readdir, readFile, stat } from "node:fs/promises";
+-import { homedir } from "node:os";
++import { tmpdir } from "node:os";
+ import { join } from "node:path";
+ 
+ /**
+@@ -18,7 +18,8 @@ import { join } from "node:path";
+  */
+ 
+ export function claudeDesktopSessionsDir(): string {
+-  return join(homedir(), "Library", "Application Support", "Claude", "claude-code-sessions");
++  // SCREENSHOT MODE (scripts/screenshot-mode.patch): sample pin/archive flags.
++  return join(tmpdir(), "agent-sessions-sample", "desktop");
+ }
+ 
+ interface FileCache {
+diff --git a/src/lib/raycast-config.ts b/src/lib/raycast-config.ts
+index 6dd5e9c..55a557b 100644
+--- a/src/lib/raycast-config.ts
++++ b/src/lib/raycast-config.ts
+@@ -1,14 +1,19 @@
+-import { environment, getPreferenceValues } from "@raycast/api";
++import { getPreferenceValues } from "@raycast/api";
++import { tmpdir } from "node:os";
+ import { join } from "node:path";
+-import { defaultClaudeProjectsDir, defaultCodexHome, IndexConfig, setConfig } from "./config";
++import { IndexConfig, setConfig } from "./config";
++
++// SCREENSHOT MODE (scripts/screenshot-mode.patch): read the generated sample tree, never the
++// real sessions, and keep the real index untouched.
++const SAMPLE_ROOT = join(tmpdir(), "agent-sessions-sample");
+ 
+ /** Build the index configuration from Raycast preferences and register it for this process. */
+ export function configureFromPreferences(): IndexConfig {
+   const p = getPreferenceValues<Preferences>();
+   const cfg: IndexConfig = {
+-    dbPath: join(environment.supportPath, "sessions-index.sqlite"),
+-    claudeProjectsDir: defaultClaudeProjectsDir(p.claudeConfigDir),
+-    codexHome: defaultCodexHome(p.codexHome),
++    dbPath: join(SAMPLE_ROOT, "index.sqlite"),
++    claudeProjectsDir: join(SAMPLE_ROOT, "home", ".claude", "projects"),
++    codexHome: join(SAMPLE_ROOT, "home", ".codex"),
+     includeArchived: p.includeArchived !== false,
+   };
+   setConfig(cfg);
