@@ -1,5 +1,12 @@
 # Agent instructions
 
+## Work on main
+
+Every session lands its work directly on `main`: no feature branches, no pull requests against
+this repo. Sessions that start in an app worktree commit there, then run
+`git fetch origin && git rebase origin/main` and `git push origin HEAD:main`. Before starting,
+rebase the worktree onto `origin/main` so the session never works from a stale base.
+
 ## Keep the extension live after every change
 
 After **any** change under `src/`, `assets/` or `package.json`, rebuild so the change is live in
